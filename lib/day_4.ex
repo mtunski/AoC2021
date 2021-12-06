@@ -20,7 +20,7 @@ defmodule Day4 do
     unmarked_numbers_sum =
       winning_board |> List.flatten() |> Enum.filter(&is_number/1) |> Enum.sum()
 
-    (winning_number * unmarked_numbers_sum) |> IO.inspect()
+    winning_number * unmarked_numbers_sum
   end
 
   defp mark_number(board, number) do
