@@ -48,6 +48,33 @@ defmodule Day4 do
     end)
   end
 
+  def solve_2(raw_input \\ nil) do
+    [numbers | boards] = raw_input |> get_input() |> parse_input()
+
+    {last_winning_number, last_winning_board} =
+      Enum.reduce_while(numbers, boards, fn number, boards ->
+        {marked_boards, last_board} =
+          Enum.reduce(boards, {[], nil}, fn board, {marked_boards, _} ->
+            marked_board = mark_number(board, number)
+
+            case check_board(marked_board) do
+              true -> {marked_boards, marked_board}
+              _ -> {marked_boards ++ [marked_board], nil}
+            end
+          end)
+
+        case length(marked_boards) == 0 do
+          true -> {:halt, {number, last_board}}
+          _ -> {:cont, marked_boards}
+        end
+      end)
+
+    unmarked_numbers_sum =
+      last_winning_board |> List.flatten() |> Enum.filter(&is_number/1) |> Enum.sum()
+
+    last_winning_number * unmarked_numbers_sum
+  end
+
   defp get_input(nil), do: Api.get_input(4)
   defp get_input(raw_input), do: raw_input
 

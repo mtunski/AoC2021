@@ -28,4 +28,8 @@ defmodule Day4Test do
   test "Part 1" do
     assert Day4.solve_1(@test_input) == 4512
   end
+
+  test "Part 2" do
+    assert Day4.solve_2(@test_input) == 1924
+  end
 end
