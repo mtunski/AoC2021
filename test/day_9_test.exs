@@ -15,7 +15,7 @@ defmodule Day9Test do
     assert Day9.solve_1(@test_input) == 15
   end
 
-  # test "Part 2" do
-  #   assert Day9.solve_2(@test_input) == 61229
-  # end
+  test "Part 2" do
+    assert Day9.solve_2(@test_input) == 1134
+  end
 end
