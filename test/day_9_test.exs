@@ -17,5 +17,17 @@ defmodule Day9Test do
 
   test "Part 2" do
     assert Day9.solve_2(@test_input) == 1134
+
+    assert Day9.solve_2("""
+           191
+           191
+           111
+           """) == 7
+
+    assert Day9.solve_2("""
+           119
+           191
+           911
+           """) == 9
   end
 end

@@ -35,62 +35,54 @@ defmodule Day9 do
       |> get_input()
       |> parse_input()
 
-    values =
-      input
-      |> Enum.join()
-      |> String.split("", trim: true)
-      |> Enum.map(&String.to_integer/1)
+    side_len = input |> Enum.at(0) |> String.length()
 
-    row_length = input |> Enum.at(0) |> String.length()
+    map =
+      [
+        input
+        |> Enum.join()
+        |> String.split("", trim: true)
+        |> Enum.map(&String.to_integer/1)
+        |> Enum.with_index()
+      ]
+      |> Enum.zip_with(fn [{v, i}] ->
+        row = Integer.floor_div(i, side_len)
+        col = rem(i, side_len)
+        {{row, col}, v}
+      end)
+      |> Enum.into(%{})
 
-    {mapping, _} =
-      values
-      |> Enum.with_index()
-      |> Enum.reduce({%{}, 1}, fn {_value, index}, {mapping, next_basin_index} ->
-        left_index = if rem(index, row_length) > 0, do: index - 1, else: nil
-        top_index = if index - row_length >= 0, do: index - row_length, else: nil
-        right_index = if 1 + rem(index, row_length) < row_length, do: index + 1, else: nil
-        bottom_index = index + row_length
-
-        current = Enum.at(values, index)
-
-        right = if right_index, do: Enum.at(values, right_index), else: nil
-        bottom = Enum.at(values, bottom_index)
-
-        case current do
-          9 ->
-            IO.inspect({index, next_basin_index})
-            next_basin_index = if right < 9, do: next_basin_index + 1, else: next_basin_index
-
-            {mapping, next_basin_index}
-
-          _ ->
-            current_basin_index =
-              mapping[index] || mapping[left_index] || mapping[top_index] || mapping[right_index] ||
-                mapping[bottom_index] || next_basin_index
-
-            new_mapping = Map.put(mapping, index, current_basin_index)
-
-            new_mapping =
-              if right < 9 && mapping[right_index] == nil,
-                do: Map.put(new_mapping, right_index, current_basin_index),
-                else: new_mapping
-
-            new_mapping =
-              if bottom < 9 && mapping[bottom_index] == nil,
-                do: Map.put(new_mapping, bottom_index, current_basin_index),
-                else: new_mapping
-
-            {new_mapping, next_basin_index}
-        end
+    {map_with_basins, _} =
+      map
+      |> Enum.reduce({map, 1}, fn {{row, col}, _}, {map_with_basins, basin_id} ->
+        {fill_basin(map_with_basins, {row, col}, basin_id), basin_id + 1}
       end)
 
-    mapping
-    |> Enum.group_by(fn {_, v} -> v end)
-    |> Enum.map(fn {_, v} -> length(v) end)
-    |> Enum.sort(&>=/2)
+    map_with_basins
+    |> Enum.filter(fn {_, basin_id} -> is_binary(basin_id) end)
+    |> Enum.frequencies_by(fn {_, basin_id} -> basin_id end)
+    |> Enum.sort_by(fn {_, cell_count} -> cell_count end, &>=/2)
     |> Enum.take(3)
-    |> Enum.reduce(1, fn val, acc -> val * acc end)
+    |> Enum.reduce(1, fn {_, cell_count}, product ->
+      cell_count * product
+    end)
+  end
+
+  defp fill_basin(map, {row, col}, basin_id) do
+    value = map[{row, col}]
+
+    case value < 9 do
+      true ->
+        map
+        |> Map.put({row, col}, "b#{basin_id}")
+        |> fill_basin({row, col - 1}, basin_id)
+        |> fill_basin({row, col + 1}, basin_id)
+        |> fill_basin({row - 1, col}, basin_id)
+        |> fill_basin({row + 1, col}, basin_id)
+
+      false ->
+        map
+    end
   end
 
   defp get_input(nil), do: Api.get_input(9)
